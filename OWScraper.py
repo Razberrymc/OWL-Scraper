@@ -28,38 +28,76 @@ for n in range(9):
     for item in list:
         OWL_list.append(item.get('href'))
 
-    s = randint(1, 3)
-    #change 3 to 10 when finished
+    s = randint(1, 5)
 
     time.sleep(s)
 
-print(OWL_list)
-
-driver.quit()
 
 #The above gets the URLS for all 200 OWL players
 
-import requests
+heroname_list = []
 
-url = "https://overwatchleague.com"
+import requests
+import csv
+
+csvfile = open("owlranks.csv", "w", newline="", encoding="utf-8")
+c = csv.writer(csvfile)
+
+c.writerow(["player url", "username", "player name", "league rank", "most played hero", "time played", "percent played"])
 
 def get_info(player_url):
-    page = requests.get(url + player_url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    body = soup.find("body")
-    print(body.get_text())
-    info_div = soup.find("div", class_="player-herostyles__PlayerInfo-sc-4caowu-9.inZfKK")
-    print(info_div)
-    #for spn in info_div:
-        #playername = spn.find("span", class_=".player-herostyles__PlayerName-sc-4caowu-15.exNfoX")
-        #try:
-            #print(playername.get_text())
-        #except:
-            #pass
+    driver.get("https://overwatchleague.com" + player_url)
+    page = driver.page_source
+    soup = BeautifulSoup(page, 'html.parser')
 
-    #print(playername)
-    #username = soup.find("div", class_=".player-herostyles__PlayerTag-sc-4caowu-16.YPaBi")
-    #print(username)
+    heroes = soup.find_all('div', id="__next")
+
+    for hero in heroes:
+        masterlist = []
+        try:
+            url_list = hero.find("a", class_="language-dropdownstyles__DropdownListItem-sc-1je0eli-5 PeBbO")
+            masterlist.append(url_list.attrs["href"])
+            print(url_list.attrs["href"])
+        except:
+            masterlist.append("N/A")
+        try:
+            username_list = hero.find("div", class_="player-herostyles__PlayerTag-sc-4caowu-16 YPaBi")
+            masterlist.append(username_list.get_text())
+            print(username_list.get_text())
+        except:
+            masterlist.append("N/A")
+        try:
+            playername_list = hero.find("span", class_="player-herostyles__PlayerName-sc-4caowu-15 exNfoX")
+            masterlist.append(playername_list.get_text())
+            print(playername_list.get_text())
+        except:
+            masterlist.append("N/A")
+        try:
+            heroname_list = hero.find("span", class_="table-hero-cardstyles__Name-dh187u-1 iQzJSk resizable-namestyles__Abbreviation-sc-1qh8dp6-1 gYcSYZ")
+            masterlist.append(heroname_list.get_text())
+            print(heroname_list.get_text())
+        except:
+            masterlist.append("N/A")
+        try:
+            timeplayed_list = hero.find("div", class_="hero-rowstyles__TimePlayed-sc-1nswscz-1 fCaUZf")
+            masterlist.append(timeplayed_list.get_text())
+            print(timeplayed_list.get_text())
+        except:
+            masterlist.append("N/A")
+        try:
+            percentplayed_list = hero.find("div", class_="hero-rowstyles__PlayedPercentage-sc-1nswscz-2 bpjkJl")
+            masterlist.append(percentplayed_list.get_text())
+            print(percentplayed_list.get_text())
+        except:
+            masterlist.append("N/A")
+
+        c.writerow(masterlist)
+
+    return masterlist
 
 for OWL in OWL_list:
     get_info(OWL)
+
+driver.quit()
+
+csvfile.close()
